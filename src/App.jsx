@@ -1,7 +1,3 @@
-import { useState } from "react";
-import axios from "axios";
-
-/* -------- Chart.js -------- */
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -10,7 +6,10 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
+
 import { Bar } from "react-chartjs-2";
+import { useState } from "react";
+import axios from "axios";
 
 ChartJS.register(
   CategoryScale,
@@ -20,26 +19,49 @@ ChartJS.register(
   Legend
 );
 
-/* -------- Backend URL -------- */
 const API_BASE = "https://youtube-backend-1m6l.onrender.com";
 
 export default function App() {
-  /* -------- State -------- */
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
 
-  /* -------- Chart Data -------- */
+  /* =========================
+     Earnings Estimator
+  ========================= */
+  const estimateEarnings = (views) => {
+    const lowCPM = 0.5;
+    const highCPM = 5;
+
+    return {
+      low: ((views / 1000) * lowCPM).toFixed(2),
+      high: ((views / 1000) * highCPM).toFixed(2)
+    };
+  };
+
+  /* =========================
+     Growth Prediction
+  ========================= */
+  const predictGrowth = (subs) => {
+    return {
+      min: Math.floor(subs * 0.01),
+      max: Math.floor(subs * 0.03)
+    };
+  };
+
+  /* =========================
+     Chart Data
+  ========================= */
   const chartData = channel && {
     labels: ["Subscribers", "Views", "Videos"],
     datasets: [
       {
         label: "Channel Stats",
         data: [
-          Number(channel.subscribers),
-          Number(channel.views),
-          Number(channel.videos)
+          channel.subscribers,
+          channel.views,
+          channel.videos
         ],
         backgroundColor: [
           "#ef4444",
@@ -50,9 +72,12 @@ export default function App() {
     ]
   };
 
-  /* -------- Fetch Data -------- */
+  /* =========================
+     Fetch Data
+  ========================= */
   const analyze = async () => {
     if (!query) return;
+
     setLoading(true);
     setChannel(null);
     setVideos([]);
@@ -75,9 +100,8 @@ export default function App() {
     setLoading(false);
   };
 
-  /* -------- UI -------- */
   return (
-    <div className="min-h-screen p-6 bg-slate-900 text-white">
+    <div className="min-h-screen bg-slate-900 text-white p-6">
       <h1 className="text-3xl font-bold text-center mb-6">
         📊 YouTube Analyzer
       </h1>
@@ -99,18 +123,15 @@ export default function App() {
       </div>
 
       {loading && (
-        <p className="text-center text-slate-400">
-          Loading...
-        </p>
+        <p className="text-center text-slate-400">Loading...</p>
       )}
 
-      {/* Channel Card */}
+      {/* Channel Info */}
       {channel && (
         <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-6">
           <div className="flex gap-4 items-center">
             <img
               src={channel.thumbnail}
-              alt="Channel"
               className="w-24 h-24 rounded-full"
             />
             <div>
@@ -118,7 +139,7 @@ export default function App() {
                 {channel.title}
               </h2>
               <p className="text-slate-400 text-sm">
-                {channel.description.slice(0, 140)}...
+                {channel.description?.slice(0, 140)}...
               </p>
             </div>
           </div>
@@ -149,21 +170,58 @@ export default function App() {
       )}
 
       {/* Chart */}
-      {channel && chartData && (
+      {channel && (
         <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8">
           <h3 className="text-lg font-semibold mb-4 text-center">
             📊 Channel Analytics
           </h3>
-
           <Bar
             data={chartData}
             options={{
               responsive: true,
-              plugins: {
-                legend: { display: false }
-              }
+              plugins: { legend: { display: false } }
             }}
           />
+        </div>
+      )}
+
+      {/* Earnings */}
+      {channel && (
+        <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8 text-center">
+          <h3 className="text-lg font-semibold mb-4">
+            💰 Estimated Earnings
+          </h3>
+          {(() => {
+            const e = estimateEarnings(channel.views);
+            return (
+              <p className="text-2xl font-bold text-green-400">
+                ${e.low} – ${e.high}
+              </p>
+            );
+          })()}
+          <p className="text-xs text-slate-400 mt-2">
+            CPM based estimation ($0.5 – $5)
+          </p>
+        </div>
+      )}
+
+      {/* Growth */}
+      {channel && (
+        <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8 text-center">
+          <h3 className="text-lg font-semibold mb-4">
+            📈 30-Day Growth Prediction
+          </h3>
+          {(() => {
+            const g = predictGrowth(channel.subscribers);
+            return (
+              <p className="text-xl font-bold text-blue-400">
+                +{g.min.toLocaleString()} to +{g.max.toLocaleString()} subscribers
+              </p>
+            );
+          })()}
+          <p className="text-xs text-slate-400 mt-2">
+            Estimated growth range
+          </p>
         </div>
       )}
 
@@ -178,11 +236,7 @@ export default function App() {
               rel="noreferrer"
               className="bg-slate-800 p-3 rounded hover:bg-slate-700"
             >
-              <img
-                src={v.thumbnail}
-                alt={v.title}
-                className="rounded mb-2"
-              />
+              <img src={v.thumbnail} className="rounded mb-2" />
               <p className="text-sm">{v.title}</p>
             </a>
           ))}
