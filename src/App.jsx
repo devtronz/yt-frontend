@@ -24,6 +24,27 @@ ChartJS.register(
 const API_BASE = "https://youtube-backend-1m6l.onrender.com";
 
 export default function App() {
+
+const chartData = channel && {
+  labels: ["Subscribers", "Views", "Videos"],
+  datasets: [
+    {
+      label: "Channel Stats",
+      data: [
+        channel.subscribers,
+        channel.views,
+        channel.videos
+      ],
+      backgroundColor: [
+        "#ef4444",
+        "#3b82f6",
+        "#22c55e"
+      ]
+    }
+  ]
+};
+
+  
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
