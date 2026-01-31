@@ -10,8 +10,8 @@
   },
   "dependencies": {
     "axios": "^1.6.7",
-     "chart.js": "^4.x",
-  "react-chartjs-2": "^5.x"
+    "chart.js": "^4.4.1",
+    "react-chartjs-2": "^5.2.0"
   },
   "devDependencies": {
     "@vitejs/plugin-react": "^4.2.1",
