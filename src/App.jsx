@@ -12,6 +12,15 @@ import { Bar } from "react-chartjs-2";
 import { useState } from "react";
 import axios from "axios";
 
+ChartJS.register(
+  CategoryScale,
+  LinearScale,
+  BarElement,
+  Tooltip,
+  Legend
+);
+
+
 const API_BASE = "https://youtube-backend-1m6l.onrender.com";
 
 export default function App() {
