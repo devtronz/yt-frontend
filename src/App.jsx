@@ -1,3 +1,7 @@
+import { useState } from "react";
+import axios from "axios";
+
+/* -------- Chart.js -------- */
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -6,11 +10,7 @@ import {
   Tooltip,
   Legend
 } from "chart.js";
-
 import { Bar } from "react-chartjs-2";
-
-import { useState } from "react";
-import axios from "axios";
 
 ChartJS.register(
   CategoryScale,
@@ -20,36 +20,37 @@ ChartJS.register(
   Legend
 );
 
-
+/* -------- Backend URL -------- */
 const API_BASE = "https://youtube-backend-1m6l.onrender.com";
 
 export default function App() {
-
-const chartData = channel && {
-  labels: ["Subscribers", "Views", "Videos"],
-  datasets: [
-    {
-      label: "Channel Stats",
-      data: [
-        channel.subscribers,
-        channel.views,
-        channel.videos
-      ],
-      backgroundColor: [
-        "#ef4444",
-        "#3b82f6",
-        "#22c55e"
-      ]
-    }
-  ]
-};
-
-  
+  /* -------- State -------- */
   const [query, setQuery] = useState("");
   const [channel, setChannel] = useState(null);
   const [videos, setVideos] = useState([]);
   const [loading, setLoading] = useState(false);
 
+  /* -------- Chart Data -------- */
+  const chartData = channel && {
+    labels: ["Subscribers", "Views", "Videos"],
+    datasets: [
+      {
+        label: "Channel Stats",
+        data: [
+          Number(channel.subscribers),
+          Number(channel.views),
+          Number(channel.videos)
+        ],
+        backgroundColor: [
+          "#ef4444",
+          "#3b82f6",
+          "#22c55e"
+        ]
+      }
+    ]
+  };
+
+  /* -------- Fetch Data -------- */
   const analyze = async () => {
     if (!query) return;
     setLoading(true);
@@ -60,21 +61,23 @@ const chartData = channel && {
       const channelRes = await axios.get(
         `${API_BASE}/api/channel?query=${query}`
       );
+
       const videosRes = await axios.get(
         `${API_BASE}/api/videos?query=${query}`
       );
 
       setChannel(channelRes.data);
       setVideos(videosRes.data);
-    } catch {
+    } catch (err) {
       alert("Channel not found or API error");
     }
 
     setLoading(false);
   };
 
+  /* -------- UI -------- */
   return (
-    <div className="min-h-screen p-6">
+    <div className="min-h-screen p-6 bg-slate-900 text-white">
       <h1 className="text-3xl font-bold text-center mb-6">
         📊 YouTube Analyzer
       </h1>
@@ -96,7 +99,9 @@ const chartData = channel && {
       </div>
 
       {loading && (
-        <p className="text-center text-slate-400">Loading...</p>
+        <p className="text-center text-slate-400">
+          Loading...
+        </p>
       )}
 
       {/* Channel Card */}
@@ -105,6 +110,7 @@ const chartData = channel && {
           <div className="flex gap-4 items-center">
             <img
               src={channel.thumbnail}
+              alt="Channel"
               className="w-24 h-24 rounded-full"
             />
             <div>
@@ -142,26 +148,25 @@ const chartData = channel && {
         </div>
       )}
 
-{channel && (
-  <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8">
-    <h3 className="text-lg font-semibold mb-4 text-center">
-      📊 Channel Analytics
-    </h3>
+      {/* Chart */}
+      {channel && chartData && (
+        <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8">
+          <h3 className="text-lg font-semibold mb-4 text-center">
+            📊 Channel Analytics
+          </h3>
 
-    <Bar
-      data={chartData}
-      options={{
-        responsive: true,
-        plugins: {
-          legend: { display: false }
-        }
-      }}
-    />
-  </div>
-)}
+          <Bar
+            data={chartData}
+            options={{
+              responsive: true,
+              plugins: {
+                legend: { display: false }
+              }
+            }}
+          />
+        </div>
+      )}
 
-
-      
       {/* Videos */}
       {videos.length > 0 && (
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -170,10 +175,12 @@ const chartData = channel && {
               key={v.videoId}
               href={`https://youtube.com/watch?v=${v.videoId}`}
               target="_blank"
+              rel="noreferrer"
               className="bg-slate-800 p-3 rounded hover:bg-slate-700"
             >
               <img
                 src={v.thumbnail}
+                alt={v.title}
                 className="rounded mb-2"
               />
               <p className="text-sm">{v.title}</p>
