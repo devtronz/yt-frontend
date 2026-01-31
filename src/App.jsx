@@ -142,6 +142,26 @@ const chartData = channel && {
         </div>
       )}
 
+{channel && (
+  <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8">
+    <h3 className="text-lg font-semibold mb-4 text-center">
+      📊 Channel Analytics
+    </h3>
+
+    <Bar
+      data={chartData}
+      options={{
+        responsive: true,
+        plugins: {
+          legend: { display: false }
+        }
+      }}
+    />
+  </div>
+)}
+
+
+      
       {/* Videos */}
       {videos.length > 0 && (
         <div className="max-w-4xl mx-auto grid grid-cols-1 md:grid-cols-2 gap-4">
