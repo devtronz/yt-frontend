@@ -1,7 +1,7 @@
 import { useState } from "react";
 import axios from "axios";
 
-const API_BASE = "https://youtube-analyzer-api.onrender.com";
+const API_BASE = "https://youtube-backend-1m6l.onrender.com";
 
 export default function App() {
   const [query, setQuery] = useState("");
