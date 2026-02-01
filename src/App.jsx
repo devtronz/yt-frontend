@@ -143,6 +143,70 @@ export default function App() {
   );
 }
 
+
+{videos.length > 0 && (
+  <div className="max-w-6xl mx-auto mt-10 bg-slate-800 rounded-xl overflow-hidden">
+    <h2 className="text-xl font-semibold px-6 py-4 border-b border-slate-700">
+      📋 Last 10 Videos Performance
+    </h2>
+
+    <div className="overflow-x-auto">
+      <table className="w-full text-sm text-left">
+        <thead className="bg-slate-900 text-slate-300">
+          <tr>
+            <th className="px-4 py-3">Video</th>
+            <th className="px-4 py-3">Views</th>
+            <th className="px-4 py-3">Likes</th>
+            <th className="px-4 py-3">Comments</th>
+            <th className="px-4 py-3">Published</th>
+          </tr>
+        </thead>
+
+        <tbody>
+          {videos.slice(0, 10).map((v) => (
+            <tr
+              key={v.videoId}
+              className="border-b border-slate-700 hover:bg-slate-700 transition"
+            >
+              <td className="px-4 py-3 flex items-center gap-3 min-w-[280px]">
+                <img
+                  src={v.thumbnail}
+                  className="w-16 h-10 rounded object-cover"
+                />
+                <a
+                  href={`https://youtube.com/watch?v=${v.videoId}`}
+                  target="_blank"
+                  className="line-clamp-2 hover:text-red-400"
+                >
+                  {v.title}
+                </a>
+              </td>
+
+              <td className="px-4 py-3 font-medium">
+                {Number(v.views).toLocaleString()}
+              </td>
+
+              <td className="px-4 py-3 text-green-400">
+                {Number(v.likes).toLocaleString()}
+              </td>
+
+              <td className="px-4 py-3 text-blue-400">
+                {Number(v.comments).toLocaleString()}
+              </td>
+
+              <td className="px-4 py-3 text-slate-400">
+                {new Date(v.publishedAt).toLocaleDateString()}
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  </div>
+)}
+
+
+
 /* ---------- COMPONENTS ---------- */
 
 function Stat({ label, value }) {
