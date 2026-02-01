@@ -11,6 +11,9 @@ import { Bar } from "react-chartjs-2";
 import { useState } from "react";
 import axios from "axios";
 
+/* =========================
+   Chart.js Registration
+========================= */
 ChartJS.register(
   CategoryScale,
   LinearScale,
@@ -51,26 +54,28 @@ export default function App() {
   };
 
   /* =========================
-     Chart Data
+     Chart Data (FIXED)
   ========================= */
-  const chartData = channel && {
-    labels: ["Subscribers", "Views", "Videos"],
-    datasets: [
-      {
-        label: "Channel Stats",
-        data: [
-          channel.subscribers,
-          channel.views,
-          channel.videos
-        ],
-        backgroundColor: [
-          "#ef4444",
-          "#3b82f6",
-          "#22c55e"
+  const chartData = channel
+    ? {
+        labels: ["Subscribers", "Views", "Videos"],
+        datasets: [
+          {
+            label: "Channel Stats",
+            data: [
+              Number(channel.subscribers),
+              Number(channel.views),
+              Number(channel.videos)
+            ],
+            backgroundColor: [
+              "#ef4444",
+              "#3b82f6",
+              "#22c55e"
+            ]
+          }
         ]
       }
-    ]
-  };
+    : null;
 
   /* =========================
      Fetch Data
@@ -126,13 +131,14 @@ export default function App() {
         <p className="text-center text-slate-400">Loading...</p>
       )}
 
-      {/* Channel Info */}
+      {/* Channel Card */}
       {channel && (
         <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-6">
           <div className="flex gap-4 items-center">
             <img
               src={channel.thumbnail}
               className="w-24 h-24 rounded-full"
+              alt="Channel"
             />
             <div>
               <h2 className="text-2xl font-semibold">
@@ -161,7 +167,7 @@ export default function App() {
 
             <div className="bg-slate-900 p-3 rounded">
               <p className="text-xl font-bold">
-                {channel.videos}
+                {Number(channel.videos).toLocaleString()}
               </p>
               <p className="text-xs text-slate-400">Videos</p>
             </div>
@@ -169,19 +175,25 @@ export default function App() {
         </div>
       )}
 
-      {/* Chart */}
-      {channel && (
+      {/* Chart Analytics */}
+      {channel && chartData && (
         <div className="max-w-4xl mx-auto bg-slate-800 p-6 rounded-lg mb-8">
           <h3 className="text-lg font-semibold mb-4 text-center">
             📊 Channel Analytics
           </h3>
-          <Bar
-            data={chartData}
-            options={{
-              responsive: true,
-              plugins: { legend: { display: false } }
-            }}
-          />
+
+          <div className="h-[300px]">
+            <Bar
+              data={chartData}
+              options={{
+                responsive: true,
+                maintainAspectRatio: false,
+                plugins: {
+                  legend: { display: false }
+                }
+              }}
+            />
+          </div>
         </div>
       )}
 
@@ -192,7 +204,9 @@ export default function App() {
             💰 Estimated Earnings
           </h3>
           {(() => {
-            const e = estimateEarnings(channel.views);
+            const e = estimateEarnings(
+              Number(channel.views)
+            );
             return (
               <p className="text-2xl font-bold text-green-400">
                 ${e.low} – ${e.high}
@@ -212,7 +226,9 @@ export default function App() {
             📈 30-Day Growth Prediction
           </h3>
           {(() => {
-            const g = predictGrowth(channel.subscribers);
+            const g = predictGrowth(
+              Number(channel.subscribers)
+            );
             return (
               <p className="text-xl font-bold text-blue-400">
                 +{g.min.toLocaleString()} to +{g.max.toLocaleString()} subscribers
@@ -236,7 +252,11 @@ export default function App() {
               rel="noreferrer"
               className="bg-slate-800 p-3 rounded hover:bg-slate-700"
             >
-              <img src={v.thumbnail} className="rounded mb-2" />
+              <img
+                src={v.thumbnail}
+                className="rounded mb-2"
+                alt="Video"
+              />
               <p className="text-sm">{v.title}</p>
             </a>
           ))}
