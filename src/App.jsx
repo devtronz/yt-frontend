@@ -1,3 +1,5 @@
+import { useState } from "react";
+import axios from "axios";
 import {
   Chart as ChartJS,
   CategoryScale,
@@ -7,8 +9,6 @@ import {
   Legend
 } from "chart.js";
 import { Bar } from "react-chartjs-2";
-import { useState } from "react";
-import axios from "axios";
 
 ChartJS.register(
   CategoryScale,
@@ -35,36 +35,29 @@ export default function App() {
     setVideos([]);
 
     try {
-      const chRes = await axios.get(
-        `${API_BASE}/api/channel?query=${query}`
-      );
-      const vdRes = await axios.get(
-        `${API_BASE}/api/videos?query=${query}`
-      );
+      const ch = await axios.get(`${API_BASE}/api/channel?query=${query}`);
+      const vd = await axios.get(`${API_BASE}/api/videos?query=${query}`);
 
-      setChannel(chRes.data || null);
-      setVideos(Array.isArray(vdRes.data) ? vdRes.data : []);
-    } catch (e) {
+      setChannel(ch.data || null);
+      setVideos(Array.isArray(vd.data) ? vd.data : []);
+    } catch {
       setError("Failed to fetch channel data");
     }
+
     setLoading(false);
   };
 
-  /* -------- SAFE NUMBERS -------- */
-  const subs = Number(channel?.subscribers || 0);
-  const views = Number(channel?.views || 0);
-  const vids = Number(channel?.videos || 0);
+  /* ---------- SAFE VALUES ---------- */
+  const subs = Number(channel?.subscribers) || 0;
+  const views = Number(channel?.views) || 0;
+  const vids = Number(channel?.videos) || 0;
 
   const avgViews = vids > 0 ? Math.round(views / vids) : 0;
   const subsPerVideo = vids > 0 ? Math.round(subs / vids) : 0;
 
   const healthScore = Math.min(
     100,
-    Math.round(
-      avgViews / 1000 +
-        subsPerVideo / 50 +
-        vids / 10
-    )
+    Math.round(avgViews / 1000 + subsPerVideo / 50 + vids / 10)
   );
 
   const topVideos = videos
@@ -72,19 +65,23 @@ export default function App() {
     .sort((a, b) => b.views - a.views)
     .slice(0, 3);
 
-  const showChart = subs > 0 || views > 0 || vids > 0;
-
-  const chartData = showChart
-    ? {
-        labels: ["Subscribers", "Views", "Videos"],
-        datasets: [
-          {
-            data: [subs, views, vids],
-            backgroundColor: ["#ef4444", "#3b82f6", "#22c55e"]
-          }
-        ]
-      }
-    : null;
+  /* ---------- NORMALIZED CHART DATA ---------- */
+  const chartData =
+    subs + views + vids > 0
+      ? {
+          labels: ["Subscribers", "Views", "Videos"],
+          datasets: [
+            {
+              data: [
+                Math.max(subs / 1000, 1),
+                Math.max(views / 100000, 1),
+                Math.max(vids * 10, 1)
+              ],
+              backgroundColor: ["#ef4444", "#3b82f6", "#22c55e"]
+            }
+          ]
+        }
+      : null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8">
@@ -111,12 +108,11 @@ export default function App() {
       {loading && (
         <p className="text-center text-slate-400">Loading...</p>
       )}
-
       {error && (
         <p className="text-center text-red-400">{error}</p>
       )}
 
-      {/* CHANNEL */}
+      {/* CHANNEL CARD */}
       {channel && (
         <div className="max-w-4xl mx-auto bg-slate-900 p-6 rounded-xl mb-6">
           <div className="flex flex-col sm:flex-row gap-4 items-center">
@@ -130,7 +126,7 @@ export default function App() {
                 {channel.title}
               </h2>
               <p className="text-slate-400 text-sm mt-1">
-                {channel.description?.slice(0, 160) || "No description"}
+                {channel.description || "No description available"}
               </p>
             </div>
           </div>
@@ -149,22 +145,24 @@ export default function App() {
           <h3 className="text-lg font-semibold mb-4 text-center">
             📈 Channel Analytics
           </h3>
-          <div className="h-72">
+          <div className="h-64">
             <Bar
               data={chartData}
               options={{
                 responsive: true,
                 maintainAspectRatio: false,
-                scales: {
-                  y: {
-                    type: "logarithmic",
-                    ticks: {
-                      callback: (v) => v.toLocaleString()
+                plugins: {
+                  legend: { display: false },
+                  tooltip: {
+                    callbacks: {
+                      label: (ctx) => {
+                        const i = ctx.dataIndex;
+                        if (i === 0) return `${subs.toLocaleString()} subs`;
+                        if (i === 1) return `${views.toLocaleString()} views`;
+                        return `${vids} videos`;
+                      }
                     }
                   }
-                },
-                plugins: {
-                  legend: { display: false }
                 }
               }}
             />
@@ -176,7 +174,7 @@ export default function App() {
       {channel && (
         <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-4 mb-6">
           <Insight label="Avg Views / Video" value={avgViews} />
-          <Insight label="Subs per Video" value={subsPerVideo} />
+          <Insight label="Subs / Video" value={subsPerVideo} />
           <Insight label="Health Score" value={`${healthScore} / 100`} />
         </div>
       )}
@@ -187,6 +185,7 @@ export default function App() {
           <h3 className="text-lg font-semibold mb-4">
             🔥 Top Performing Videos
           </h3>
+
           <div className="grid md:grid-cols-3 gap-4">
             {topVideos.map((v) => (
               <a
@@ -199,7 +198,7 @@ export default function App() {
                 <img src={v.thumbnail} className="rounded mb-2" />
                 <p className="text-sm">{v.title}</p>
                 <p className="text-xs text-slate-400 mt-1">
-                  {Number(v.views || 0).toLocaleString()} views
+                  {Number(v.views).toLocaleString()} views
                 </p>
               </a>
             ))}
@@ -210,7 +209,7 @@ export default function App() {
   );
 }
 
-/* -------- SMALL COMPONENTS -------- */
+/* ---------- COMPONENTS ---------- */
 
 function Stat({ label, value }) {
   return (
