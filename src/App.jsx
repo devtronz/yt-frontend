@@ -1,22 +1,5 @@
 import { useState } from "react";
 import axios from "axios";
-import {
-  Chart as ChartJS,
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend
-} from "chart.js";
-import { Bar } from "react-chartjs-2";
-
-ChartJS.register(
-  CategoryScale,
-  LinearScale,
-  BarElement,
-  Tooltip,
-  Legend
-);
 
 const API_BASE = "https://youtube-backend-1m6l.onrender.com";
 
@@ -47,7 +30,6 @@ export default function App() {
     setLoading(false);
   };
 
-  /* ---------- SAFE VALUES ---------- */
   const subs = Number(channel?.subscribers) || 0;
   const views = Number(channel?.views) || 0;
   const vids = Number(channel?.videos) || 0;
@@ -64,24 +46,6 @@ export default function App() {
     .filter(v => Number(v.views) > 0)
     .sort((a, b) => b.views - a.views)
     .slice(0, 3);
-
-  /* ---------- NORMALIZED CHART DATA ---------- */
-  const chartData =
-    subs + views + vids > 0
-      ? {
-          labels: ["Subscribers", "Views", "Videos"],
-          datasets: [
-            {
-              data: [
-                Math.max(subs / 1000, 1),
-                Math.max(views / 100000, 1),
-                Math.max(vids * 10, 1)
-              ],
-              backgroundColor: ["#ef4444", "#3b82f6", "#22c55e"]
-            }
-          ]
-        }
-      : null;
 
   return (
     <div className="min-h-screen bg-slate-950 text-white p-4 md:p-8">
@@ -131,51 +95,21 @@ export default function App() {
             </div>
           </div>
 
-          <div className="grid grid-cols-3 gap-4 mt-6 text-center">
+          {/* MAIN STATS */}
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4 mt-6">
             <Stat label="Subscribers" value={subs} />
-            <Stat label="Views" value={views} />
-            <Stat label="Videos" value={vids} />
-          </div>
-        </div>
-      )}
-
-      {/* CHART */}
-      {chartData && (
-        <div className="max-w-4xl mx-auto bg-slate-900 p-6 rounded-xl mb-6">
-          <h3 className="text-lg font-semibold mb-4 text-center">
-            📈 Channel Analytics
-          </h3>
-          <div className="h-64">
-            <Bar
-              data={chartData}
-              options={{
-                responsive: true,
-                maintainAspectRatio: false,
-                plugins: {
-                  legend: { display: false },
-                  tooltip: {
-                    callbacks: {
-                      label: (ctx) => {
-                        const i = ctx.dataIndex;
-                        if (i === 0) return `${subs.toLocaleString()} subs`;
-                        if (i === 1) return `${views.toLocaleString()} views`;
-                        return `${vids} videos`;
-                      }
-                    }
-                  }
-                }
-              }}
-            />
+            <Stat label="Total Views" value={views} />
+            <Stat label="Total Videos" value={vids} />
           </div>
         </div>
       )}
 
       {/* INSIGHTS */}
       {channel && (
-        <div className="max-w-4xl mx-auto grid md:grid-cols-3 gap-4 mb-6">
+        <div className="max-w-4xl mx-auto grid grid-cols-1 sm:grid-cols-3 gap-4 mb-6">
           <Insight label="Avg Views / Video" value={avgViews} />
           <Insight label="Subs / Video" value={subsPerVideo} />
-          <Insight label="Health Score" value={`${healthScore} / 100`} />
+          <Insight label="Channel Health" value={`${healthScore} / 100`} />
         </div>
       )}
 
@@ -186,7 +120,7 @@ export default function App() {
             🔥 Top Performing Videos
           </h3>
 
-          <div className="grid md:grid-cols-3 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {topVideos.map((v) => (
               <a
                 key={v.videoId}
@@ -196,7 +130,7 @@ export default function App() {
                 className="bg-slate-800 p-3 rounded hover:bg-slate-700"
               >
                 <img src={v.thumbnail} className="rounded mb-2" />
-                <p className="text-sm">{v.title}</p>
+                <p className="text-sm font-medium">{v.title}</p>
                 <p className="text-xs text-slate-400 mt-1">
                   {Number(v.views).toLocaleString()} views
                 </p>
@@ -213,20 +147,20 @@ export default function App() {
 
 function Stat({ label, value }) {
   return (
-    <div className="bg-slate-800 p-4 rounded">
-      <p className="text-xl font-bold">
+    <div className="bg-slate-800 p-5 rounded-lg text-center">
+      <p className="text-2xl font-bold">
         {Number(value).toLocaleString()}
       </p>
-      <p className="text-xs text-slate-400">{label}</p>
+      <p className="text-sm text-slate-400 mt-1">{label}</p>
     </div>
   );
 }
 
 function Insight({ label, value }) {
   return (
-    <div className="bg-slate-900 p-4 rounded text-center">
-      <p className="text-lg font-bold">{value}</p>
-      <p className="text-xs text-slate-400">{label}</p>
+    <div className="bg-slate-900 p-5 rounded-lg text-center">
+      <p className="text-xl font-semibold">{value}</p>
+      <p className="text-xs text-slate-400 mt-1">{label}</p>
     </div>
   );
 }
